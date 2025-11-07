@@ -1,0 +1,161 @@
+@extends('layouts.app')
+
+@section('title', 'Shop - Epoy Store')
+
+@section('content')
+<div class="container mx-auto px-4 py-12">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold mb-2">Shop</h1>
+        <p class="text-gray-600">Temukan sepatu impian Anda</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Sidebar Filter -->
+        <aside class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="font-semibold text-lg mb-4">Filter</h3>
+
+                <!-- Search -->
+                <form action="{{ route('shop') }}" method="GET" class="mb-6">
+                    <input type="text" name="search" placeholder="Cari produk..." 
+                           value="{{ request('search') }}"
+                           class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="w-full mt-2 px-4 py-2 bg-black text-white rounded hover:bg-gray-800">
+                        Cari
+                    </button>
+                </form>
+
+                <!-- Category Filter -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Kategori</h4>
+                    <div class="space-y-2">
+                        <a href="{{ route('shop') }}" 
+                           class="block text-gray-700 hover:text-black {{ !request('category') ? 'font-semibold' : '' }}">
+                            Semua Kategori
+                        </a>
+                        @foreach($categories as $category)
+                        <a href="{{ route('shop', ['category' => $category->id]) }}" 
+                           class="block text-gray-700 hover:text-black {{ request('category') == $category->id ? 'font-semibold' : '' }}">
+                            {{ $category->name }} ({{ $category->products_count }})
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="mb-6">
+                    <h4 class="font-semibold mb-3">Gender</h4>
+                    <div class="space-y-2">
+                        <a href="{{ route('shop') }}" 
+                           class="block text-gray-700 hover:text-black {{ !request('gender') ? 'font-semibold' : '' }}">
+                            Semua
+                        </a>
+                        <a href="{{ route('shop', ['gender' => 'men']) }}" 
+                           class="block text-gray-700 hover:text-black {{ request('gender') == 'men' ? 'font-semibold' : '' }}">
+                            Men
+                        </a>
+                        <a href="{{ route('shop', ['gender' => 'women']) }}" 
+                           class="block text-gray-700 hover:text-black {{ request('gender') == 'women' ? 'font-semibold' : '' }}">
+                            Women
+                        </a>
+                        <a href="{{ route('shop', ['gender' => 'boy']) }}" 
+                           class="block text-gray-700 hover:text-black {{ request('gender') == 'boy' ? 'font-semibold' : '' }}">
+                            Boy
+                        </a>
+                        <a href="{{ route('shop', ['gender' => 'child']) }}" 
+                           class="block text-gray-700 hover:text-black {{ request('gender') == 'child' ? 'font-semibold' : '' }}">
+                            Child
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Products Grid -->
+        <div class="lg:col-span-3">
+            <!-- Toolbar -->
+            <div class="flex justify-between items-center mb-6">
+                <p class="text-gray-600">
+                    Menampilkan {{ $products->count() }} dari {{ $products->total() }} produk
+                </p>
+                <form action="{{ route('shop') }}" method="GET" class="flex items-center space-x-2">
+                    @if(request('category'))
+                        <input type="hidden" name="category" value="{{ request('category') }}">
+                    @endif
+                    @if(request('gender'))
+                        <input type="hidden" name="gender" value="{{ request('gender') }}">
+                    @endif
+                    @if(request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+                    <label class="text-gray-600">Urutkan:</label>
+                    <select name="sort" onchange="this.form.submit()" 
+                            class="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Terbaru</option>
+                        <option value="price_low" {{ request('sort') == 'price_low' ? 'selected' : '' }}>Harga Terendah</option>
+                        <option value="price_high" {{ request('sort') == 'price_high' ? 'selected' : '' }}>Harga Tertinggi</option>
+                        <option value="name" {{ request('sort') == 'name' ? 'selected' : '' }}>Nama A-Z</option>
+                    </select>
+                </form>
+            </div>
+
+            <!-- Products -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                @forelse($products as $product)
+                <div class="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition relative">
+                    @if($product->is_new)
+                        <span class="absolute top-4 left-4 bg-black text-white text-xs px-3 py-1 rounded z-10">NEW</span>
+                    @endif
+                    @if($product->has_discount)
+                        <span class="absolute top-4 right-4 bg-red-500 text-white text-xs px-3 py-1 rounded z-10">SALE</span>
+                    @endif
+                    <a href="{{ route('product.detail', $product->slug) }}">
+                        @if($product->primaryImage)
+                            <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" 
+                                 alt="{{ $product->name }}" 
+                                 class="w-full h-64 object-cover">
+                        @else
+                            <div class="w-full h-64 bg-gray-200 flex items-center justify-center">
+                                <span class="text-gray-400">No Image</span>
+                            </div>
+                        @endif
+                    </a>
+                    <div class="p-4">
+                        <p class="text-sm text-gray-500 mb-1">{{ $product->category->name }}</p>
+                        <h3 class="font-semibold mb-2">{{ $product->name }}</h3>
+                        <p class="text-sm text-gray-600 mb-2 line-clamp-2">{{ $product->description }}</p>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="text-lg font-bold">Rp {{ number_format($product->final_price, 0, ',', '.') }}</span>
+                                @if($product->has_discount)
+                                    <span class="text-sm text-gray-500 line-through ml-2">Rp {{ number_format($product->price, 0, ',', '.') }}</span>
+                                @endif
+                            </div>
+                            <a href="{{ route('product.detail', $product->slug) }}" 
+                               class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800">
+                                →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                <div class="col-span-3 text-center py-12">
+                    <p class="text-gray-500 text-lg">Produk tidak ditemukan</p>
+                    <a href="{{ route('shop') }}" class="inline-block mt-4 px-6 py-2 bg-black text-white rounded hover:bg-gray-800">
+                        Lihat Semua Produk
+                    </a>
+                </div>
+                @endforelse
+            </div>
+
+            <!-- Pagination -->
+            @if($products->hasPages())
+            <div class="mt-8">
+                {{ $products->links() }}
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+@endsection

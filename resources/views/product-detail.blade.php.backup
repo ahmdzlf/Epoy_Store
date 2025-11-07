@@ -1,0 +1,252 @@
+@extends('layouts.app')
+
+@section('title', $product->name . ' - Epoy Store')
+
+@push('styles')
+<style>
+    .thumbnail-active {
+        border-color: #000 !important;
+        border-width: 3px;
+    }
+</style>
+@endpush
+
+@section('content')
+<div class="container mx-auto px-4 py-12">
+    <!-- Breadcrumb -->
+    <nav class="mb-8 text-sm text-gray-600">
+        <a href="{{ route('home') }}" class="hover:text-black transition">Home</a>
+        <span class="mx-2">/</span>
+        <a href="{{ route('shop') }}" class="hover:text-black transition">Shop</a>
+        <span class="mx-2">/</span>
+        <a href="{{ route('shop') }}?category={{ $product->category_id }}" class="hover:text-black transition">
+            {{ $product->category->name }}
+        </a>
+        <span class="mx-2">/</span>
+        <span class="text-black font-semibold">{{ $product->name }}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+        <!-- Product Images -->
+        <div>
+            <div class="bg-gray-50 rounded-lg overflow-hidden mb-4 border border-gray-200">
+                @if($product->primaryImage)
+                    <img src="{{ asset('storage/' . $product->primaryImage->image_path) }}" 
+                            alt="{{ $product->name }}" 
+                            id="mainImage"
+                            class="w-full h-[500px] object-contain p-8">
+                @else
+                    <div class="w-full h-[500px] bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-400 text-lg">No Image Available</span>
+                    </div>
+                @endif
+            </div>
+            
+            <!-- Thumbnails -->
+@if ($product->images->count() > 1)
+<div class="grid grid-cols-4 gap-3">
+    @foreach ($product->images as $index => $image)
+        @php
+            $imageUrl = asset("storage/{$image->image_path}");
+        @endphp
+        <div class="thumbnail cursor-pointer border-2 border-gray-200 rounded overflow-hidden hover:border-black transition {{ $index === 0 ? 'thumbnail-active' : '' }}" 
+                onclick="changeImage('{{ $imageUrl }}', this)">
+            <img src="{{ $imageUrl }}" 
+                    alt="{{ $product->name }}" 
+                    class="w-full h-24 object-cover">
+        </div>
+    @endforeach
+</div>
+@endif
+
+        </div>
+
+        <!-- Product Info -->
+        <div>
+            <div class="flex items-center flex-wrap gap-2 mb-4">
+                <span class="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded">
+                    {{ $product->category->name }}
+                </span>
+                @if($product->is_new)
+                    <span class="px-3 py-1 bg-black text-white text-sm font-bold rounded">NEW</span>
+                @endif
+                @if($product->stock > 0 && $product->stock < 10)
+                    <span class="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded">
+                        Stok Terbatas
+                    </span>
+                @elseif($product->stock === 0)
+                    <span class="px-3 py-1 bg-red-500 text-white text-sm font-bold rounded">
+                        SOLD OUT
+                    </span>
+                @endif
+            </div>
+
+            <h1 class="text-4xl font-bold mb-4 leading-tight">{{ $product->name }}</h1>
+
+            <!-- Price Section -->
+            <div class="mb-6 pb-6 border-b">
+                @if($product->has_discount)
+                    <div class="flex items-baseline flex-wrap gap-3">
+                        <span class="text-4xl font-bold text-red-600">
+                            Rp {{ number_format($product->discount_price, 0, ',', '.') }}
+                        </span>
+                        <span class="text-xl text-gray-400 line-through">
+                            Rp {{ number_format($product->price, 0, ',', '.') }}
+                        </span>
+                        @php
+                            $discountPercent = round((($product->price - $product->discount_price) / $product->price) * 100);
+                        @endphp
+                        <span class="px-2 py-1 bg-red-500 text-white text-sm font-bold rounded">
+                            SAVE {{ $discountPercent }}%
+                        </span>
+                    </div>
+                @else
+                    <span class="text-4xl font-bold text-gray-900">
+                        Rp {{ number_format($product->price, 0, ',', '.') }}
+                    </span>
+                @endif
+            </div>
+
+            <!-- Description -->
+            @if($product->description)
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2">Deskripsi Produk</h3>
+                <p class="text-gray-600 leading-relaxed">
+                    {{ $product->description }}
+                </p>
+            </div>
+            @endif
+
+            <!-- Detail -->
+            @if($product->detail)
+            <div class="mb-6">
+                <h3 class="font-bold text-lg mb-2">Detail Produk</h3>
+                <div class="text-gray-600 leading-relaxed whitespace-pre-line">
+                    {{ $product->detail }}
+                </div>
+            </div>
+            @endif
+
+            <!-- Product Specs -->
+            <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <span class="text-gray-600 text-sm">Stok:</span>
+                        @if($product->stock > 10)
+                            <p class="font-bold text-green-600">
+                                {{ $product->stock }} tersedia
+                            </p>
+                        @elseif($product->stock > 0)
+                            <p class="font-bold text-orange-600">
+                                {{ $product->stock }} tersedia
+                            </p>
+                        @else
+                            <p class="font-bold text-red-600">
+                                Habis
+                            </p>
+                        @endif
+                    </div>
+                    <div>
+                        <span class="text-gray-600 text-sm">SKU:</span>
+                        <p class="font-bold text-gray-900">{{ $product->sku ?? '-' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 text-sm">Gender:</span>
+                        <p class="font-bold text-gray-900">{{ ucfirst($product->gender ?? 'Unisex') }}</p>
+                    </div>
+                    <div>
+                        <span class="text-gray-600 text-sm">Kategori:</span>
+                        <p class="font-bold text-gray-900">{{ $product->category->name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WhatsApp Button -->
+            @php
+                $waNumber = '6285718173038';
+                $productName = $product->name;
+                $productPrice = $product->final_price;
+                $productUrl = route('product.detail', $product->slug);
+                $waText = "Halo, saya tertarik dengan produk ini:\n\n*{$productName}*\nHarga: Rp " . number_format($productPrice, 0, ',', '.') . "\nLink: {$productUrl}";
+                $waLink = 'https://wa.me/' . $waNumber . '?text=' . urlencode($waText);
+            @endphp
+
+            @if($product->stock > 0)
+                <a href="{{ $waLink }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer"
+                   class="flex items-center justify-center w-full px-8 py-4 bg-green-500 text-white text-lg font-bold rounded-lg hover:bg-green-600 transition shadow-lg hover:shadow-xl">
+                    <svg class="w-6 h-6 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                    </svg>
+                    Beli via WhatsApp
+                </a>
+                
+                <p class="text-sm text-gray-500 mt-3 text-center">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    Klik tombol di atas untuk chat langsung dengan admin
+                </p>
+            @else
+                <button disabled 
+                        class="flex items-center justify-center w-full px-8 py-4 bg-gray-300 text-gray-600 text-lg font-bold rounded-lg cursor-not-allowed">
+                    <i class="fas fa-times-circle mr-2"></i>
+                    Stok Habis
+                </button>
+                <p class="text-sm text-gray-500 mt-3 text-center">
+                    Produk ini sedang tidak tersedia
+                </p>
+            @endif
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    @if(isset($relatedProducts) && $relatedProducts->count() > 0)
+    <div class="mt-16">
+        <h2 class="text-3xl font-bold mb-8">Produk Terkait</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            @foreach($relatedProducts as $related)
+            <div class="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition">
+                <a href="{{ route('product.detail', $related->slug) }}" class="block">
+                    @if($related->primaryImage)
+                        <img src="{{ asset('storage/' . $related->primaryImage->image_path) }}" 
+                             alt="{{ $related->name }}" 
+                             class="w-full h-56 object-cover hover:scale-105 transition duration-300">
+                    @else
+                        <div class="w-full h-56 bg-gray-200 flex items-center justify-center">
+                            <span class="text-gray-400">No Image</span>
+                        </div>
+                    @endif
+                </a>
+                <div class="p-4">
+                    <h3 class="font-semibold mb-2 truncate" title="{{ $related->name }}">
+                        {{ $related->name }}
+                    </h3>
+                    <div class="flex justify-between items-center">
+                        <span class="text-lg font-bold">
+                            Rp {{ number_format($related->final_price, 0, ',', '.') }}
+                        </span>
+                        <a href="{{ route('product.detail', $related->slug) }}" 
+                           class="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition">
+                            →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+</div>
+@endsection
+
+@push('scripts')
+<script>
+function changeImage(src, element) {
+    document.getElementById('mainImage').src = src;
+    document.querySelectorAll('.thumbnail').forEach(thumb => {
+        thumb.classList.remove('thumbnail-active');
+    });
+    element.classList.add('thumbnail-active');
+}
+</script>
+@endpush
