@@ -49,7 +49,7 @@ Atau gunakan Laragon → klik Start All → buka `http://epoy-store.test.`
 
 # 🧩 2. Business Process (Proses Bisnis)
 
-![Logo Epoy Store](main/image/busines.png)
+![Logo Epoy Store](image/busines.png)
 
 1. Pelanggan
     - Akses Halaman Home/Produk
@@ -70,7 +70,7 @@ Atau gunakan Laragon → klik Start All → buka `http://epoy-store.test.`
 
 # 🗃️ 3. Model Data (Struktur Database)
 
-![Logo Epoy Store](main/image/busines.png)
+![Logo Epoy Store](image/busines.png)
 
 
 | Nama Tabel      | Deskripsi                            | Kolom Utama                                                           |
