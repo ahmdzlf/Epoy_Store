@@ -4,7 +4,7 @@ Proyek ini merupakan sistem jual beli pakaian berbasis web yang dibangun menggun
 Fitur utama meliputi tampilan produk, detail produk, testimoni pelanggan, serta halaman admin untuk mengelola data produk.  
 Proses transaksi saat ini masih dilakukan secara manual melalui **WhatsApp**, tanpa integrasi pembayaran otomatis.
 
-Link Youtube Presentasi: https://youtu.be/8burGUqN_ps
+Link Youtube Presentasi: https://youtu.be/8burGUqN_ps <br>
 Link Figma: https://www.figma.com/design/9ZmB6aGy2agQdE3fOfzoN4/Untitled?node-id=0-1&t=2woT4JOenJbNjN1z-1
 
 ---
